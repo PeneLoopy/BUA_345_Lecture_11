@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>BUA 345 - Lecture 11</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Penelope Pooler Eisenbies" />
+    <meta name="date" content="2023-02-22" />
+    <script src="docs_files/header-attrs/header-attrs.js"></script>
+    <link href="docs_files/panelset/panelset.css" rel="stylesheet" />
+    <script src="docs_files/panelset/panelset.js"></script>
+    <link href="docs_files/tile-view/tile-view.css" rel="stylesheet" />
+    <script src="docs_files/tile-view/tile-view.js"></script>
+    <script src="docs_files/xaringanExtra_fit-screen/fit-screen.js"></script>
+    <link href="docs_files/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="docs_files/animate.css/animate.xaringan.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+background-image: url("docs_files/images/sloth_faded.png")
+background-size: cover
+
+class: bottom, right
+
+## BUA 345 - Lecture 11
+
+### More about Correlation, SLR, and MLR in R
+
+&lt;br&gt;
+
+
+#### Penelope Pooler Eisenbies
+
+#### 2023-02-22
+
+[Wikipedia Sloth Page](https://en.wikipedia.org/wiki/Sloth)
+
+---
+
+### Two options for using the Lecture 11 Markdown (.Rmd) file: 
+
+#### Option 1: If you were not able to use R/Rstudio to run code on Tuesday:
+
+1. Download Updated Zipped R project. 
+
+2. Open Zipped folder.
+
+3. Copy internal folder (R Project) to a BUA 345 folder on your computer **NOT IN DOWLOADS**.
+
+4. Click on .Rproj file to open project.
+
+5. Open `code_data_output` folder in files pane (lower left pane).
+
+6. Notice there are now ***TWO*** .Rmd files, one Lecture 10 and one for Lecture 11.
+
+7. Open `BUA_345_Lecture_11.Rmd` file.
+
+8. Run Setup chunk.
+
+---
+
+### Two options for using the Lecture 11 Markdown (.Rmd) file:  
+
+#### Option 2: If you opened the Lecture 10 Markdown file and made changes already:
+
+1. Download `BUA_345_Lecture_11.Rmd` Markdown file from Blackboard (Lecture 11).
+
+2. Save this .Rmd file to the `code_data_output` in the Lecture 10 R project on your computer.
+
+3. Open `BUA_345_Lecture_11.Rmd` file.
+
+4. Run Setup chunk.
+
+5. **Optional:** 
+
+   - Rename folder to be `BUA 345 Lectures 10 &amp; 11 R Project`
+
+   - Rename .Rproj file to be `BUA 345 Lectures 10 &amp; 11 R Project`
+
+---
+
+### Setup
+
+.pull-left[
+
+- The setup chunk shows the packages needed for this demo.   
+
+- R will install specified packages if needed (only required once after R is installed)  
+
+- R will load specified packaged (required every time you start a new R session)  
+
+- The first time you run this code, R will install these packages which will be slow.  
+
+- **If you get warnings, that's okay.**  
+
+- If you get **error messages**, I (or TA), can help you.
+
+]
+
+.pull-right[
+
+![](docs_files/images/owl.png)
+
+]
+
+
+
+---
+
+### Setup Chunk for Lecture 11
+
+
+```r
+# this line specifies options for default options for all R Chunks
+knitr::opts_chunk$set(echo=T, highlight=T)
+
+# suppress scientific notation
+options(scipen=100)
+
+# install helper package that loads and installs other packages, if needed
+if (!require("pacman")) install.packages("pacman", repos = "http://lib.stat.cmu.edu/R/CRAN/")
+
+# install and load required packages
+pacman::p_load(pacman,tidyverse, magrittr, olsrr, gridExtra)
+
+# verify packages
+p_loaded()
+```
+
+```
+##  [1] "olsrr"          "xaringanthemer" "magrittr"       "gridExtra"     
+##  [5] "forcats"        "stringr"        "dplyr"          "purrr"         
+##  [9] "readr"          "tidyr"          "tibble"         "ggplot2"       
+## [13] "tidyverse"      "pacman"
+```
+
+
+**NOTES:
+
+- ** Don't worry about `xaringanthemer` package.  That is required for my slides but not for your code.
+
+- I have added one more package, `gridExtra`, that you will need for the optional plot demo in your HW 5.
+
+---
+
+### Multiple Linear Regression (MLR) in R
+
+- Extending this model to Multiple Linear Regression is straightforward.
+- Additional terms are added to the model with a `+` sign between them:
+- MLR model for houses data:
+
+
+
+```r
+# mlr model with living area, bathrooms and house age in model
+(houses_mlr &lt;- ols_regress(Selling_Price ~ Living_Area + Bathrooms + House_Age, data = houses))
+```
+
+#### Abridged MLR Output:
+
+&lt;img src="docs_files/images/mlr_out1.jpg" width="569" /&gt;&lt;img src="docs_files/images/mlr_out2.jpg" width="801" /&gt;
+
+---
+
+### Lecture 11 In-class Exercises
+
+#### **Question 1 (L11) - Session ID: bua345s23**  
+
+**Assuming number of bathrooms and age of a house are unchanged, what would be the CHANGE in price due *SOLELY to building an addition that adds 300 square feet to the living area?***   
+ 
+**Round answer to closest thousand dollars (K)**
+
+HINT: Multiply coefficient for Living Area by 300 and round to closest thousand
+
+A. 14 K  
+B. 16 K  
+C. 18 K  
+D. 20 K  
+E. 22 K  
+
+#### Two ways to save a value from a model
+
+
+```r
+b_lvng_area &lt;- 60.614                     # type value manually
+b_lvng_area &lt;- houses_mlr$betas[2]        # use stored betas vector (more advanced, NOT required)
+(b_lvng_area*300) |&gt; round(-3)            # answer to question
+```
+
+---
+
+### Plan for Today
+
+#### 1. Review materials from MAS 261 and Khan Academy
+
+- On Blackboard I have created a [Review Materials]() section.
+
+  - Relevant Lectures and Videos from MAS 261 are posted:
+
+     - Lecture 13 - One Sample Hypothesis Tests
+     - Lecture 19 - Linear Transformations
+     - Lecture 20 - Multiple Linear Regression
+  
+  - Also posted: Two Khan Academy links about hypothesis testing:
+     
+     - Hypothesis Tests: The Idea of Significance Tests
+     - Comparing a P-value from a test statistic to a Significance Level
+
+
+#### 2. Continue with Correlation SLR and MLR models in R
+
+#### 3. Work through some of HW 5 and help students with R/RStudio part of assignment
+
+---
+
+### Technical issues with R and RStudio
+
+.pull-left[
+
+- Many students have gotten some help and are now able to use R and RStudio
+
+- I also received some excellent questions which I will mention today.
+
+- If you still need help, beyond the time available in class:
+
+  - It is your responsibility to come to office hours or make an appointment.
+  
+  - R/RStudio will be required in assignments, Quiz 2, and Final exam
+
+- Learning new software and coding language can be stressful, but we can help you
+
+]
+
+
+
+.pull-right[
+
+![](docs_files/images/beaver.png)
+
+]
+
+
+
+---
+
+### Helpful RStudio Changes
+
+.pull-left[
+
+- To change appearance or other options:
+
+  - Windows OS: Tools &gt; Global Options
+  - Mac OS: RStudio &gt; Preferences
+
+- One very useful change (Do now):
+
+  - Change 'Save workspace...' option to Never
+
+]
+
+
+.pull-right[
+
+
+&lt;img src="docs_files/images/Workspace.png" width="600" height="150" style="background-color: #202020; padding:1px; display: inline-block;" /&gt;
+
+
+]
+
+&lt;br&gt;
+
+- Changing Appearance (Optional but helpful)
+
+  - Within same Menu, click Appearance - Many options to examine
+
+- Other options - Everything can be changed, but I like most of the defaults
+
+  - Source vs. Visual (I prefer Source)
+
+    - **Visual** version is newer and easier to read, glitchy but improving with each version
+    -   Slides and abridged HTML notes will **ALWAYS** be provided.
+    
+---
+
+### Quick Review of Correlation Matrices, SLR, and MLR
+
+.pull-left[
+
+#### Importing Data using `read_csv`
+
+&lt;br&gt;
+
+- **Recall how to import data from our project using `read_csv`:**
+
+&lt;br&gt;
+
+
+```r
+# import dataset 
+# save it as an object named houses
+houses &lt;- read_csv("houses.csv", 
+                   show_col_types=F) 
+```
+
+&lt;br&gt;
+
+- Notice that the data now appear in the `Global Environment` (Upper Right Pane).
+
+- You can click on the dataset name to view it.
+
+]
+
+.pull-right[
+
+![](docs_files/images/owl.png)
+
+]
+
+
+  
+  
+---
+
+### Examining Data using `glimpse`
+
+- You can also examine the data using the R command `glimpse`
+  
+- A **very** nice feature of R Markdown is that output from commands appears directly below the R Chunk.
+
+- Submitted commands AND output also appear in the Console (Lower Left Pane).
+
+&lt;br&gt;
+
+
+```r
+# houses data is piped (sent into) the glimpse() command
+houses |&gt; glimpse() 
+```
+
+```
+## Rows: 200
+## Columns: 4
+## $ Selling_Price &lt;dbl&gt; 217314, 238792, 222330, 206688, 88207, 236936, 90678, 10…
+## $ Living_Area   &lt;dbl&gt; 2498, 2250, 2712, 2284, 1480, 2300, 957, 1673, 3003, 957…
+## $ Bathrooms     &lt;dbl&gt; 2.5, 2.5, 3.0, 2.5, 1.5, 2.5, 1.0, 2.0, 3.5, 1.0, 1.5, 1…
+## $ House_Age     &lt;dbl&gt; 14, 10, 1, 17, 14, 16, 49, 18, 88, 49, 3, 180, 14, 33, 1…
+```
+
+---
+
+### Examining Data using a Correlation Matrix
+
+Now we can calculate the correlation matrix of these data using the `cor` command:
+
+&lt;br&gt;
+
+
+```r
+# correlation matrix is printed to screen but not saved
+# correlation values are rounded to two decimal places
+houses |&gt; cor() |&gt; round(2) 
+```
+
+```
+##               Selling_Price Living_Area Bathrooms House_Age
+## Selling_Price          1.00        0.77      0.71     -0.38
+## Living_Area            0.77        1.00      0.66     -0.22
+## Bathrooms              0.71        0.66      1.00     -0.52
+## House_Age             -0.38       -0.22     -0.52      1.00
+```
+
+&lt;br&gt;
+
+- The correlation matrix shows the correlation, R&lt;sub&gt;XY&lt;/sub&gt;, between each pair of variables in the data.
+
+&lt;br&gt;
+
+- Values along the diagonal are 1 because that shows the correlation between each variable and itself.
+
+---
+
+### saving a Correlation Matrix
+
+-   We can also save that matrix **AND** print to the screen:
+
+
+```r
+# saved object can be printed to screen by enclosing it in parentheses
+# correlation matrix saved as cor_houses_data
+(cor_houses_data &lt;- houses |&gt; cor() |&gt; round(2))  
+```
+
+```
+##               Selling_Price Living_Area Bathrooms House_Age
+## Selling_Price          1.00        0.77      0.71     -0.38
+## Living_Area            0.77        1.00      0.66     -0.22
+## Bathrooms              0.71        0.66      1.00     -0.52
+## House_Age             -0.38       -0.22     -0.52      1.00
+```
+
+-  If you save an object and want to view it later, type it's name and hit enter:
+
+
+```r
+cor_houses_data # type name of any saved object to view it on screen
+```
+
+```
+##               Selling_Price Living_Area Bathrooms House_Age
+## Selling_Price          1.00        0.77      0.71     -0.38
+## Living_Area            0.77        1.00      0.66     -0.22
+## Bathrooms              0.71        0.66      1.00     -0.52
+## House_Age             -0.38       -0.22     -0.52      1.00
+```
+
+---
+
+### Lecture 11 In-class Exercises
+
+#### **Question 2 (L11) - Session ID: bua345s23**  
+
+**What is the correlation between House_Age and Bathrooms (number of bathrooms) in this dataset?**
+
+A.  0.77
+
+B.  0.71
+
+C.  0.66
+
+D.  -0.22
+
+E.  -0.38
+
+F.  -0.52
+
+---
+
+### R code to create and view a MLR model
+
+
+```r
+# slr model with just living area
+(houses_slr &lt;- ols_regress(Selling_Price ~ Living_Area, data = houses))
+```
+
+#### Abridged SLR Output:
+
+&lt;img src="docs_files/images/slr_out1.jpg" width="581" /&gt;&lt;img src="docs_files/images/slr_out2.jpg" width="793" /&gt;
+
+---
+
+### Multiple Linear Regression (MLR) in R
+
+- Extending this model to Multiple Linear Regression is straightforward.
+- Additional terms are added to the model with a `+` sign between them:
+- MLR model for houses data:
+
+
+
+```r
+# mlr model with living area, bathrooms and house age in model
+(houses_mlr &lt;- ols_regress(Selling_Price ~ Living_Area + Bathrooms + House_Age, data = houses))
+```
+
+#### Abridged MLR Output:
+
+&lt;img src="docs_files/images/mlr_out1.jpg" width="569" /&gt;&lt;img src="docs_files/images/mlr_out2.jpg" width="801" /&gt;
+
+---
+
+### Help with R/RStudio and HW 5
+
+.pull-left[
+
+- If you have made changes to your Lecture 11 R Markdown file, `BUA_345_Lecture_11.Rmd`, save them now.
+
+- Then close this project.
+
+- I want to make sure everyone can open the HW Assignment 5 R Project on their computer.
+
+- I will walk you through the steps and we do some of the HW questions as in-class exercises.
+
+]
+
+.pull-right[
+
+![](docs_files/images/beaver.png)
+]
+
+
+
+
+
+---
+
+background-image: url("docs_files/images/tired_panda_faded.png")
+background-size: cover
+
+.pull-left[
+
+### **Key Points from This Week**
+
+.bg-azure.b--dark_cyan.ba.bw2.br3.shadow-5.ph2[
+
+#### Concepts Covered:
+
+- Using R and RStudio 
+- Opening R Projects
+- Running setup to install and load required R packages
+- Importing and Examining Data
+- Calculating data summaries and correlations
+- Running SLR and MLR models and examining output
+
+#### Additional Related Concepts:
+
+- Document each step and add comments to script
+- R Markdown is great for saving code and output in one file
+
+]
+
+]
+
+.pull-right[
+
+.bg-azure.b--dark_cyan.ba.bw2.br3.shadow-5.ph3[
+You may submit an 'Engagement Question' about each lecture until midnight on the day of the lecture. **A minimum of four submissions are required during the semester.**
+]
+
+]
+
+
+
+
+
+
+
+  
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"slideNumberFormat": "%current%/%total%",
+"highlightStyle": "tomorrow-night-bright",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": true,
+"keep_md": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

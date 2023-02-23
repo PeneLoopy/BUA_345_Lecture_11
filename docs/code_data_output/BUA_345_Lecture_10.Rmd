@@ -1,0 +1,251 @@
+---
+title: "BUA 455 Lecture 10"
+author: "Penelope Pooler Eisenbies"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    code_folding: show
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+---
+
+### Getting Started with Markdown
+
+- Download Zipped R project 
+
+- Open Zipped folder and copy internal folder (R Project) to a BUA 345 folder on your computer NOT IN DOWLOADS
+
+- Click on .Rproj file to open project
+
+- Click on `code_data_output` file to open it.
+
+- Click on `BUA_345_Lecture_10.Rmd` to open it.
+
+- Run Setup Chunk.
+
+---
+
+### Setup
+
+- The setup chunk shows the packages needed for this demo.   
+
+- R will install specified packages if needed (only required once after R is installed)  
+
+- R will load specified packaged (required every time you start a new R session)  
+
+- The first time you run this code, R will install these packages which will be slow.  
+
+- **If you get warnings, that's okay.**  
+
+- If you get **error messages**, I (or TA), can help you.
+
+---
+
+### Setup Chunk for Lecture 10
+
+```{r setup for Lecture 10, include = T}
+
+
+# this line specifies options for default options for all R Chunks
+knitr::opts_chunk$set(echo=T, highlight=T)
+
+# suppress scientific notation
+options(scipen=100)
+
+# install helper package that loads and installs other packages, if needed
+if (!require("pacman")) install.packages("pacman", repos = "http://lib.stat.cmu.edu/R/CRAN/")
+
+# install and load required packages
+pacman::p_load(pacman,tidyverse, magrittr, olsrr)
+
+# verify packages
+p_loaded()
+
+```
+
+---
+
+### Lecture 10 In-class Exercises
+
+#### **Question 2 (L10) - Session ID: bua345s23**
+  
+Below is small R Chunk with a calculation.
+ - `#` before text indicates a comment. R will ignore this text.
+ 
+```{r first calculations in R}
+(10*3) + sqrt(987) - (2*4) + 4567               # unrounded calculation
+((10*3) + sqrt(987) - (2*4) + 4567) |> round(2) # rounded to 2 decimal places
+
+```
+
+Experiment with running the lines one at a time and running th whole chunk.
+
+The output should appear below the chunk and in the Console (Lower Left Pane)  
+
+What is the value from these calculations, rounded to 2 decimal places?
+
+A. 4620.12
+  
+B. 4680.42
+  
+C. 4660.32
+  
+D. 4620.42
+
+---
+
+### Lecture 10 In-class Exercises
+
+#### **Question 3 (L10) - Session ID: bua345s23** 
+
+#### Creating and Saving Objects in R - Entering small datasets manually 
+
+**`1.`** Copy and paste the R code shown below into the provided R Chunk.
+
+```{r summarizing ages data}
+ages <- c(21,18,27,43,56,23,23,25,29,40)   # create ages data vector
+median(ages)                               # calculate median of ages
+summary(ages)                              # calculate summary statistics for ages data
+
+```
+
+
+**`2.`** Run this code to create a numerical variable named `ages`.
+
+**`3.`** Notice that `ages` appears in the `Global Environment`.
+
+**`4.`** Find the median of `ages` using the `median` command.
+
+The median of the `ages` data is:
+  
+A. 24  
+B. 25  
+C. 26  
+D. 27  
+E. 28  
+
+---
+
+
+### Importing Data into R
+
+- In BUA 345, all data files will be stored in R Project `code_data_output` folder with R Markdown file
+
+- `tidyverse` package must be loaded in `setup` chunk above
+
+- running this code will save `houses` dataset to the `Global Environment`.
+
+- `#` before text indicates a comment. R will ignore this text.**
+
+```{r import houses data}
+houses <- read_csv("houses.csv")                     # import houses data
+houses <- read_csv("houses.csv", show_col_types = F) # same command with message surpressed
+
+# same command with glimpse afterwards to examine data
+# pipe |> operator used to make code more efficient
+
+houses <- read_csv("houses.csv", show_col_types = F) |> glimpse()                                                               
+```
+
+---
+
+### Examining Data - Variable Summaries and Correlations in R
+  
+
+```{r variable summaries and correlations in R}
+
+houses |> select(Living_Area) |> summary() # summary of living area (with piping)
+
+summary(houses$Living_Area)                # summary of living area without piping
+
+houses |> summary()                        # summary of houses data (with piping)
+
+summary(houses)                            # summary without piping
+
+houses |> cor()                            # correlation matrix for houses (with piping)
+
+cor(houses)                                # correlation matrix for houses (without piping)
+
+```
+
+---
+
+### Lecture 10 In-class Exercises
+
+#### **Question 4 (L10) - Session ID: bua345s23** 
+
+What is the maximum selling price in the houses data? 
+
+Round answer to closest thousand (K)
+
+A. 150 K     
+B. 165 K    
+C. 205 K    
+D. 291 K    
+E. 466 K    
+F. 521 K    
+
+
+```{r R code calculate rounded max values}
+# unrounded using summary()
+houses |> pull(Selling_Price) |> summary() 
+
+ # unrounded using max()
+houses |> pull(Selling_Price) |> max()     
+
+# rounded to closest thousand
+# round(-3) means round to third place before decimal (thousands)
+houses |> pull(Selling_Price) |> summary() |> round(-3)
+houses |> pull(Selling_Price) |> max() |> round(-3)
+
+```
+
+---
+
+### Lecture 10 In-class Exercises
+
+#### **Question 5 (L10) - Session ID: bua345s23** 
+
+What is the correlation between `House_Age` and `Living_Area` in the `houses` dataset? Round answer to two decimal places. 
+
+A. 0.77    
+B. 0.71    
+C. 0.66    
+D. -0.22    
+E. -0.38   
+F. -0.52    
+    
+NOTE:  All values in correlation matrix can be rounded at once with `round` command.
+
+```{r  calculate rounded correlation matrix}
+houses |> cor() |> round(2)   # rounded correlation matrix to two decimal places with piping
+
+```
+
+---
+
+### R code to create and view a MLR model
+
+
+```{r slr houses model}
+# slr model with just living area
+(houses_slr <- ols_regress(Selling_Price ~ Living_Area, data = houses))
+
+```
+
+---
+
+### Multiple Linear Regression (MLR) in R
+
+- Extending this model to Multiple Linear Regression is straightforward.
+- Additional terms are added to the model with a `+` sign between them:
+- MLR model for houses data:
+
+
+```{r mlr houses model}
+
+# mlr model with living area, bathrooms and house age in model
+(houses_mlr <- ols_regress(Selling_Price ~ Living_Area + Bathrooms + House_Age, data = houses))
+
+```
